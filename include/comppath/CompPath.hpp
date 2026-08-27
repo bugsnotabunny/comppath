@@ -334,141 +334,196 @@ consteval auto concat_paths(auto const &lhs, auto const &rhs) noexcept {
 
 namespace posix {
 
+/// @brief: Character type used to store POSIX paths
 using PathChar = char8_t;
-using PathCString = PathChar const *;
+
+/// @brief: View over POSIX path string
 using PathStringView = std::basic_string_view<PathChar>;
 
+/// @brief: A separator which POSIX prefers
 static constexpr PathChar OS_PREFERRED_SEPARATOR = '/';
+
+/// @brief: List of all separators allowed in POSIX paths
 static constexpr std::array OS_SEPARATORS = std::to_array<PathChar>({OS_PREFERRED_SEPARATOR});
 
+/// @brief: Compile-time POSIX path storage. Underlying string is encoded in UTF-8
+/// @warn:  N may be bigger than the actual size of a path. Extra capacity can accumulate due to how
+///         operator/ and constructors are implemented. See more detailed answer in their
+///         description. Use SHRINK<PATH> to get efficiently stored paths
 template <size_t N>
 struct [[nodiscard]] CompPath {
+  /// @brief: Character type used to store POSIX paths
   using value_type = PathChar;
 
+  /// @brief: A separator which POSIX prefers
   static constexpr value_type preferred_separator = // NOLINT(readability-identifier-naming) case is
                                                     // chosen for better std-compatibility
       OS_PREFERRED_SEPARATOR;
 
+  /// @brief: List of all separators allowed in POSIX paths
   static constexpr std::span<value_type const>
       possible_separators = // NOLINT(readability-identifier-naming) case is
                             // chosen for better std-compatibility
       OS_SEPARATORS;
 
+  /// @brief: Construct an empty path
   consteval CompPath() noexcept
     requires(N == 1)
   = default;
 
+  /// @brief: Construct a path from utf-8 string literal. If given string is not a valid utf-8, then
+  ///         program is ill-formed
   template <typename CHAR>
     requires(sizeof(CHAR) == 1)
   consteval CompPath(CHAR const (&s)[N]) noexcept
       : data{detail::make_data<Data, char8_t, PathChar>(s)} {
   }
 
+  /// @brief: Construct a path from utf-16 string literal. If given string is not a valid utf-16,
+  ///         then program is ill-formed
+  /// @warn:  This ctor performs conversion to utf-8 and may produce bloated strings since we have
+  ///         to allocate capacity for worst-case scenario
   template <typename CHAR, size_t M>
     requires(sizeof(CHAR) == 2)
   consteval CompPath(CHAR const (&s)[M]) noexcept
       : data{detail::make_data<Data, char16_t, PathChar>(s)} {
   }
 
+  /// @brief: Construct a path from utf-32 string literal. If given string is not a valid utf-32,
+  ///         then program is ill-formed
+  /// @warn:  This ctor performs conversion to utf-8 and may produce bloated strings since we have
+  ///         to allocate capacity for worst-case scenario
   template <typename CHAR, size_t M>
     requires(sizeof(CHAR) == 4)
   consteval CompPath(CHAR const (&s)[M]) noexcept
       : data{detail::make_data<Data, char32_t, PathChar>(s)} {
   }
 
+  /// @brief: Convert path into string view
   constexpr operator PathStringView() const noexcept {
     return PathStringView{data.cstr, size()};
   }
 
+  /// @brief: Convert path into c-string which may be passes into syscalls. This method is only
+  ///         available if target platform is POSIX
   constexpr char const *os_str() const noexcept
     requires(COMPPATH_PLATFORM_POSIX == 1)
   {
     return reinterpret_cast<char const *>(std::ranges::begin(data.cstr));
   }
 
+  /// @brief: Append one path to another using os-preferred separator
+  /// @warn:  May produce string which capacity is 1 or 2 bytes bigger than needed
   template <size_t M>
   consteval auto operator/(CompPath<M> const &rhs) const noexcept {
     return detail::append_paths<CompPath>(*this, rhs);
   }
 
+  /// @brief: Append one path to another using os-preferred separator
+  /// @warn:  May produce string which capacity is 1 or 2 bytes bigger than needed
   template <typename CHAR, size_t M>
   consteval auto operator/(CHAR const (&rhs)[M]) const noexcept {
     return *this / CompPath<M>{rhs};
   }
 
+  /// @brief: Concatenate one path with another without inserting a separator
+  /// @warn:  Any extra capacities inside paths sum and persist further
   template <size_t M>
   consteval auto operator+(CompPath<M> const &rhs) const noexcept {
     return detail::concat_paths<CompPath>(*this, rhs);
   }
 
+  /// @brief: Concatenate one path with another without inserting a separator
+  /// @warn:  Any extra capacities inside paths sum and persist further
   template <typename CHAR, size_t M>
   consteval auto operator+(CHAR const (&rhs)[M]) const noexcept {
     return *this + CompPath<M>{rhs};
   }
 
-  consteval bool empty() const noexcept {
-    return size() == 0;
-  }
-
+  /// @brief: Tell if path is an absolute path
   consteval bool is_absolute() const noexcept {
     return PathStringView{*this}.starts_with('/');
   }
 
+  /// @brief: Tell if path is just root path and nothing else
   consteval bool is_root_path() const noexcept {
     return !empty() &&
            std::ranges::all_of(PathStringView{data.cstr}, [](char c) { return c == '/'; });
   }
 
+  /// @brief: Tell if path is a relative path
   consteval bool is_relative() const noexcept {
     return !is_absolute();
   }
 
+  /// @brief: Tell if path is empty
+  consteval bool empty() const noexcept {
+    return size() == 0;
+  }
+
+  /// @brief: Get path's actual size
   [[nodiscard]] consteval size_t size() const noexcept {
     return data.size;
   }
 
+  /// @brief: Get path's maximum size
   [[nodiscard]] static consteval size_t capacity() noexcept {
     return N - 1;
   }
 
+  /// @brief: Get path's maximum size
   [[nodiscard]] static consteval size_t max_size() noexcept {
     return capacity();
   }
 
+  /// @brief: Tell if path is equal to a path constructed from given string literal
   template <typename CHAR, size_t M>
   [[nodiscard]] consteval bool operator==(CHAR const (&rhs)[M]) const noexcept {
     return *this == CompPath<M>{rhs};
   }
 
+  /// @brief: Compare path with a path constructed from given string literal
   template <typename CHAR, size_t M>
   [[nodiscard]] consteval auto operator<=>(CHAR const (&rhs)[M]) const noexcept {
     return *this <=> CompPath<M>{rhs};
   }
 
+  /// @brief: Tell if path is equal to given object convertible into PathStringView
   template <std::convertible_to<PathStringView> S>
   [[nodiscard]] constexpr bool operator==(S const &rhs) const noexcept {
     return PathStringView{*this} == PathStringView{rhs};
   }
 
+  /// @brief: Compare path with given object convertible into PathStringView
   template <std::convertible_to<PathStringView> S>
   [[nodiscard]] constexpr auto operator<=>(S const &rhs) const noexcept {
     return PathStringView{*this} <=> PathStringView{rhs};
   }
 
   struct Data {
+    /// @brief: Path's actual size
     size_t size = N - 1;
+
+    /// @brief: Null-terminated at cstr[size] string of utf-8 characters
     PathChar cstr[N]{}; // C array used for better compiler messages
   };
 
+  /// @brief: Path's actual size
   Data const data;
 };
 
+/// @brief: Deduction guide for default construction. Deduces CompPath<1> which represents an empty
+///         path
 CompPath() -> CompPath<1>;
 
+/// @brief: Deduction guide for construction from utf-16 string literal. Reserves M * 2 capacity
+///         which is enough for worst-case conversion into utf-8
 template <typename CHAR, size_t M>
   requires(sizeof(CHAR) == 2)
 CompPath(CHAR const (&)[M]) noexcept -> CompPath<M * 2>;
 
+/// @brief: Deduction guide for construction from utf-32 string literal. Reserves M * 4 capacity
+///         which is enough for worst-case conversion into utf-8
 template <typename CHAR, size_t M>
   requires(sizeof(CHAR) == 4)
 CompPath(CHAR const (&s)[M]) noexcept -> CompPath<M * 4>;
@@ -562,82 +617,119 @@ consteval std::u16string_view parse_win_root_name(std::u16string_view path) noex
 
 } // namespace detail
 
+/// @brief: Character type used to store Windows paths
 using PathChar = char16_t;
-using PathCString = PathChar const *;
+
+/// @brief: View over Windows path string
 using PathStringView = std::basic_string_view<PathChar>;
 
+/// @brief: A separator which Windows prefers
 static constexpr PathChar OS_PREFERRED_SEPARATOR = '\\';
+
+/// @brief: List of all separators allowed in Windows paths
 static constexpr std::array OS_SEPARATORS = std::to_array<PathChar>({OS_PREFERRED_SEPARATOR, '/'});
 
+/// @brief: Compile-time Windows path storage. Underlying string is encoded in UTF-16
+/// @warn:  N may be bigger than the actual size of a path. Extra capacity can accumulate due to how
+///         operator/ and constructors are implemented. See more detailed answer in their
+///         description. Use SHRINK<PATH> to get efficiently stored paths
 template <size_t N>
 struct [[nodiscard]] CompPath {
+  /// @brief: Character type used to store Windows paths
   using value_type = PathChar;
 
+  /// @brief: A separator which Windows prefers
   static constexpr value_type preferred_separator = // NOLINT(readability-identifier-naming) case is
                                                     // chosen for better std-compatibility
       OS_PREFERRED_SEPARATOR;
 
+  /// @brief: List of all separators allowed in Windows paths
   static constexpr std::span<value_type const>
       possible_separators = // NOLINT(readability-identifier-naming) case is
                             // chosen for better std-compatibility
       OS_SEPARATORS;
 
+  /// @brief: Construct an empty path
   consteval CompPath() noexcept
     requires(N == 1)
   = default;
 
+  /// @brief: Construct a path from utf-8 string literal. If given string is not a valid utf-8, then
+  ///         program is ill-formed
+  /// @warn:  This ctor performs conversion to utf-16 and may produce bloated strings since we have
+  ///         to allocate capacity for worst-case scenario
   template <typename CHAR>
     requires(sizeof(CHAR) == 1)
   consteval CompPath(CHAR const (&s)[N]) noexcept
       : data{detail::make_data<Data, char8_t, PathChar>(s)} {
   }
 
+  /// @brief: Construct a path from utf-16 string literal. If given string is not a valid utf-16,
+  ///         then program is ill-formed
   template <typename CHAR>
     requires(sizeof(CHAR) == 2)
   consteval CompPath(CHAR const (&s)[N]) noexcept
       : data{detail::make_data<Data, char16_t, PathChar>(s)} {
   }
 
+  /// @brief: Construct a path from utf-32 string literal. If given string is not a valid utf-32,
+  ///         then program is ill-formed
+  /// @warn:  This ctor performs conversion to utf-16 and may produce bloated strings since we have
+  ///         to allocate capacity for worst-case scenario
   template <typename CHAR, size_t M>
     requires(sizeof(CHAR) == 4)
   consteval CompPath(CHAR const (&s)[M]) noexcept
       : data{detail::make_data<Data, char32_t, PathChar>(s)} {
   }
 
+  /// @brief: Convert path into string view
   constexpr operator PathStringView() const noexcept {
     return PathStringView{data.cstr, size()};
   }
 
+  /// @brief: Convert path into c-string which may be passes into syscalls. This method is only
+  ///         available if target platform is Windows
   constexpr wchar_t const *os_str() const noexcept
     requires(COMPPATH_PLATFORM_WINDOWS == 1)
   {
     return reinterpret_cast<wchar_t const *>(std::ranges::begin(data.cstr));
   }
 
+  /// @brief: Append one path to another using os-preferred separator
+  /// @warn:  May produce string which capacity is 1 or 2 bytes bigger than needed
   template <size_t M>
   consteval auto operator/(CompPath<M> const &rhs) const noexcept {
     return detail::append_paths<CompPath>(*this, rhs);
   }
 
+  /// @brief: Append one path to another using os-preferred separator
+  /// @warn:  May produce string which capacity is 1 or 2 bytes bigger than needed
   template <typename CHAR, size_t M>
   consteval auto operator/(CHAR const (&rhs)[M]) const noexcept {
     return *this / CompPath<M>{rhs};
   }
 
+  /// @brief: Concatenate one path with another without inserting a separator
+  /// @warn:  Any extra capacities inside paths sum and persist further
   template <size_t M>
   consteval auto operator+(CompPath<M> const &rhs) const noexcept {
     return detail::concat_paths<CompPath>(*this, rhs);
   }
 
+  /// @brief: Concatenate one path with another without inserting a separator
+  /// @warn:  Any extra capacities inside paths sum and persist further
   template <typename CHAR, size_t M>
   consteval auto operator+(CHAR const (&rhs)[M]) const noexcept {
     return *this + CompPath<M>{rhs};
   }
 
+  /// @brief: Tell if path is empty
   consteval bool empty() const noexcept {
     return size() == 0;
   }
 
+  /// @brief: Tell if path is an absolute path. Path is absolute if it has a root name (drive letter
+  ///         like C: or UNC path like \\server\share) or starts with a separator
   consteval bool is_absolute() const noexcept {
     auto root_name = detail::parse_win_root_name(*this);
     auto this_sv = PathStringView{*this};
@@ -647,6 +739,8 @@ struct [[nodiscard]] CompPath {
     return true;
   }
 
+  /// @brief: Tell if path consists only of a root name (if present) and/or a single root directory
+  ///         separator and nothing else
   consteval bool is_root_path() const noexcept {
     auto root_name = detail::parse_win_root_name(*this);
     auto this_sv = PathStringView{*this};
@@ -654,58 +748,76 @@ struct [[nodiscard]] CompPath {
     return this_sv == u"\\" || this_sv == u"/" || (!root_name.empty() && this_sv.empty());
   }
 
+  /// @brief: Tell if path is a relative path
   consteval bool is_relative() const noexcept {
     return !is_absolute();
   }
 
+  /// @brief: Get path's actual size
   [[nodiscard]] consteval size_t size() const noexcept {
     return data.size;
   }
 
+  /// @brief: Get path's maximum size
   [[nodiscard]] static consteval size_t capacity() noexcept {
     return N - 1;
   }
 
+  /// @brief: Get path's maximum size
   [[nodiscard]] static consteval size_t max_size() noexcept {
     return capacity();
   }
 
+  /// @brief: Tell if path is equal to a path constructed from given string literal
   template <typename CHAR, size_t M>
   [[nodiscard]] consteval bool operator==(CHAR const (&rhs)[M]) const noexcept {
     return *this == CompPath<M>{rhs};
   }
 
+  /// @brief: Compare path with a path constructed from given string literal
   template <typename CHAR, size_t M>
   [[nodiscard]] consteval auto operator<=>(CHAR const (&rhs)[M]) const noexcept {
     return *this <=> CompPath<M>{rhs};
   }
 
+  /// @brief: Tell if path is equal to given object convertible into PathStringView
   template <std::convertible_to<PathStringView> S>
   [[nodiscard]] constexpr bool operator==(S const &rhs) const noexcept {
     return PathStringView{*this} == PathStringView{rhs};
   }
 
+  /// @brief: Compare path with given object convertible into PathStringView
   template <std::convertible_to<PathStringView> S>
   [[nodiscard]] constexpr auto operator<=>(S const &rhs) const noexcept {
     return PathStringView{*this} <=> PathStringView{rhs};
   }
 
   struct Data {
+    /// @brief: Path's actual size
     size_t size = N - 1;
+
+    /// @brief: Null-terminated at cstr[size] string of utf-16 characters
     PathChar cstr[N]{}; // C array used for better compiler messages
   };
 
+  /// @brief: Path's underlying data
   Data const data;
 };
 
+/// @brief: Deduction guide for default construction. Deduces CompPath<1> which represents an empty
+///         path
 CompPath() -> CompPath<1>;
 
+/// @brief: Deduction guide for construction from utf-32 string literal. Reserves M * 2 capacity
+///         which is enough for worst-case conversion into utf-16
 template <typename CHAR, size_t M>
   requires(sizeof(CHAR) == 4)
 CompPath(CHAR const (&s)[M]) noexcept -> CompPath<M * 2>;
 
 } // namespace win
 
+/// @brief: Helper which produces a compile-time error when instantiated. Intended to be used in
+///         if-constexpr branches which handle unsupported path types
 template <auto...>
 consteval auto ill_form() noexcept {
   struct Nothing {};
@@ -1181,70 +1293,115 @@ consteval auto make_preferred_impl() noexcept {
 
 namespace posix {
 
+/// @brief: Reconstruct given path shrinking its capacity to the bare minimum required to store
+///         path's characters
 template <CompPath PATH>
 constexpr CompPath SHRINK = detail::SHRINK<CompPath, PATH>;
 
+/// @brief: Root path. May be given any root path, e.g. "/", "//" or "///" on POSIX
 template <CompPath PATH = "/">
   requires(PATH.is_root_path())
 constexpr CompPath ROOT = SHRINK<PATH>;
 
+/// @brief: Append path B to path A inserting os-preferred separator if needed and shrink the result
 template <CompPath A, CompPath B>
 constexpr CompPath APPEND = SHRINK<A / B>;
 
+/// @brief: Concatenate path A with path B without inserting a separator and shrink the result
 template <CompPath A, CompPath B>
 constexpr CompPath CONCAT = SHRINK<A + B>;
 
+/// @brief: Get root name if it exists, otherwise get empty path. POSIX paths have no root names,
+///         but leading separators beyond the first one are treated as root name, e.g.
+///         ROOT_NAME<"//usr"> == "/" and ROOT_NAME<"///usr"> == "//"
 template <CompPath PATH>
 constexpr CompPath ROOT_NAME = detail::ROOT_NAME<CompPath, PATH>;
 
+/// @brief: Get root directory if it exists, otherwise get empty path. Root directory is a single
+///         separator which goes right after root name if it is present
 template <CompPath PATH>
 constexpr CompPath ROOT_DIRECTORY = detail::ROOT_DIRECTORY<CompPath, PATH>;
 
+/// @brief: Get root path which consists of root name and root directory if they exist. On POSIX it
+///         is "/" for absolute paths and empty for relative paths
 template <CompPath PATH>
 constexpr CompPath ROOT_PATH = detail::ROOT_PATH<CompPath, PATH>;
 
+/// @brief: Get path with all trailing separators removed. Root paths are returned unchanged
 template <CompPath PATH>
 constexpr CompPath REMOVE_TRAILING_SEPS = detail::REMOVE_TRAILING_SEPS<CompPath, PATH>;
 
+/// @brief: Get path relative to it's root. If path has no root part, the whole path is returned
+///         unchanged
 template <CompPath PATH>
 constexpr CompPath RELATIVE_PATH = detail::RELATIVE_PATH<CompPath, PATH>;
 
+/// @brief: Get parent path which is a path without it's last component. Trailing separators are
+///         removed first. Root path, empty path and single-component relative path have no parent:
+///         root path is returned unchanged while the latter two become empty
 template <CompPath PATH>
 constexpr CompPath PARENT_PATH = detail::PARENT_PATH<CompPath, PATH>;
 
+/// @brief: Get last path component. Root path and paths ending with a separator have no filename
+///         which means an empty path is returned
 template <CompPath PATH>
 constexpr CompPath FILENAME = detail::FILENAME<CompPath, PATH>;
 
+/// @brief: Get filename without it's extension. Leading dots are not treated as extension
+///         separators which means dotfiles like ".profile" have no extension
 template <CompPath PATH>
 constexpr CompPath STEM = detail::STEM<CompPath, PATH>;
 
+/// @brief: Get extension of a path's filename starting from the last dot. Empty path is returned
+///         if filename has no extension
 template <CompPath PATH>
 constexpr CompPath EXTENSION = detail::EXTENSION<CompPath, PATH>;
 
+/// @brief: Get path with all separators converted into os-preferred ones. POSIX has only one
+///         allowed separator, so the path is simply shrunk
 template <CompPath PATH>
 constexpr CompPath MAKE_PREFERRED = SHRINK<PATH>;
 
+/// @brief: Get path without it's filename which is everything before the last path component
 template <CompPath PATH>
 constexpr CompPath REMOVE_FILENAME = detail::REMOVE_FILENAME<CompPath, PATH>;
 
+/// @brief: Get path without it's extension
 template <CompPath PATH>
 constexpr CompPath REMOVE_EXTENSION = detail::REMOVE_EXTENSION<CompPath, PATH>;
 
+/// @brief: Get path with it's filename replaced by given replacement path. If path has no filename,
+///         replacement is appended to it's parent
 template <CompPath PATH, CompPath REPLACEMENT>
 constexpr CompPath REPLACE_FILENAME = detail::REPLACE_FILENAME<CompPath, PATH, REPLACEMENT>;
 
+/// @brief: Get path with it's extension replaced by given replacement path. Replacement starting
+///         without a dot gets one prepended. Empty replacement removes the extension. Dotfiles like
+///         ".profile" have no extension, so replacement is appended to them
 template <CompPath PATH, CompPath REPLACEMENT>
 constexpr CompPath REPLACE_EXTENSION = detail::REPLACE_EXTENSION<CompPath, PATH, REPLACEMENT>;
 
+/// @brief: Decompose path into a tuple of it's components as integral constants. Absolute paths
+///         start with a root-directory token. Empty components produced by trailing separators are
+///         preserved
 template <CompPath PATH>
 constexpr std::tuple TOKENS = detail::TOKENS<CompPath, PATH>;
 
+/// @brief: Get path in normal form: dot components are removed, dot-dot components resolve
+///         preceding components, redundant separators are collapsed and leading root path is
+///         preserved. Root path eats all dot-dots, e.g. "/.." resolves to "/". Empty path and path
+///         consisting only of dot-dots resolve to "." and leading ".." respectively
 template <CompPath PATH>
 constexpr CompPath LEXICALLY_NORMAL = detail::LEXICALLY_NORMAL<CompPath, PATH>;
 
+/// @brief: Get path relative to given base path. Both paths are normalized first. Returns empty
+///         path if paths have different root paths. Empty base returns the path itself. Equal paths
+///         yield "."
 template <CompPath PATH, CompPath BASE>
 constexpr CompPath LEXICALLY_RELATIVE = detail::LEXICALLY_RELATIVE<CompPath, PATH, BASE>;
 
+/// @brief: Get path relative to given base path if possible, otherwise return the path itself.
+///         Unlike LEXICALLY_RELATIVE it never returns an empty path when paths have different roots
 template <CompPath PATH, CompPath BASE>
 constexpr CompPath LEXICALLY_PROXIMATE = detail::LEXICALLY_PROXIMATE<CompPath, PATH, BASE>;
 
@@ -1252,70 +1409,117 @@ constexpr CompPath LEXICALLY_PROXIMATE = detail::LEXICALLY_PROXIMATE<CompPath, P
 
 namespace win {
 
+/// @brief: Reconstruct given path shrinking its capacity to the bare minimum required to store
+///         path's characters
 template <CompPath PATH>
 constexpr CompPath SHRINK = detail::SHRINK<CompPath, PATH>;
 
+/// @brief: Root path. May be given any root path, e.g. "\\", "/", "C:\\" or "//server/share"
 template <CompPath PATH = "/">
   requires(PATH.is_root_path())
 constexpr CompPath ROOT = SHRINK<PATH>;
 
+/// @brief: Append path B to path A inserting os-preferred separator if needed and shrink the result
 template <CompPath A, CompPath B>
 constexpr CompPath APPEND = SHRINK<A / B>;
 
+/// @brief: Concatenate path A with path B without inserting a separator and shrink the result
 template <CompPath A, CompPath B>
 constexpr CompPath CONCAT = SHRINK<A + B>;
 
+/// @brief: Get root name if it exists, otherwise get empty path. Windows root name is a drive
+///         letter like "C:", a UNC path like "\\server\share" or an extended-length path prefix
+///         like "\\?\C:" or "\\?\UNC\server"
 template <CompPath PATH>
 constexpr CompPath ROOT_NAME = detail::ROOT_NAME<CompPath, PATH>;
 
+/// @brief: Get root directory if it exists, otherwise get empty path. Root directory is a single
+///         separator which goes right after root name if it is present. Paths which consist only
+///         of a root name, like "C:", have no root directory
 template <CompPath PATH>
 constexpr CompPath ROOT_DIRECTORY = detail::ROOT_DIRECTORY<CompPath, PATH>;
 
+/// @brief: Get root path which consists of root name and root directory if they exist. If root
+///         directory is missing, root path equals root name, e.g. ROOT_PATH<"C:"> == "C:"
 template <CompPath PATH>
 constexpr CompPath ROOT_PATH = detail::ROOT_PATH<CompPath, PATH>;
 
+/// @brief: Get path with all trailing separators removed. Root paths are returned unchanged
 template <CompPath PATH>
 constexpr CompPath REMOVE_TRAILING_SEPS = detail::REMOVE_TRAILING_SEPS<CompPath, PATH>;
 
+/// @brief: Get path relative to it's root. If path has no root part, the whole path is returned
+///         unchanged
 template <CompPath PATH>
 constexpr CompPath RELATIVE_PATH = detail::RELATIVE_PATH<CompPath, PATH>;
 
+/// @brief: Get parent path which is a path without it's last component. Trailing separators are
+///         removed first. Root path, empty path and single-component relative path have no parent:
+///         root path is returned unchanged while the latter two become empty
 template <CompPath PATH>
 constexpr CompPath PARENT_PATH = detail::PARENT_PATH<CompPath, PATH>;
 
+/// @brief: Get last path component. Root path and paths ending with a separator have no filename
+///         which means an empty path is returned
 template <CompPath PATH>
 constexpr CompPath FILENAME = detail::FILENAME<CompPath, PATH>;
 
+/// @brief: Get filename without it's extension. Leading dots are not treated as extension
+///         separators which means dotfiles like ".profile" have no extension
 template <CompPath PATH>
 constexpr CompPath STEM = detail::STEM<CompPath, PATH>;
 
+/// @brief: Get extension of a path's filename starting from the last dot. Empty path is returned
+///         if filename has no extension
 template <CompPath PATH>
 constexpr CompPath EXTENSION = detail::EXTENSION<CompPath, PATH>;
 
+/// @brief: Get path with all separators converted into os-preferred ones, e.g. "foo/bar" becomes
+///         "foo\bar". Existing os-preferred separators are left in place which means repeated
+///         separators are not collapsed
 template <CompPath PATH>
 constexpr CompPath MAKE_PREFERRED = SHRINK<detail::make_preferred_impl<PATH>()>;
 
+/// @brief: Get path without it's filename which is everything before the last path component
 template <CompPath PATH>
 constexpr CompPath REMOVE_FILENAME = detail::REMOVE_FILENAME<CompPath, PATH>;
 
+/// @brief: Get path without it's extension
 template <CompPath PATH>
 constexpr CompPath REMOVE_EXTENSION = detail::REMOVE_EXTENSION<CompPath, PATH>;
 
+/// @brief: Get path with it's filename replaced by given replacement path. If path has no filename,
+///         replacement is appended to it's parent
 template <CompPath PATH, CompPath REPLACEMENT>
 constexpr CompPath REPLACE_FILENAME = detail::REPLACE_FILENAME<CompPath, PATH, REPLACEMENT>;
 
+/// @brief: Get path with it's extension replaced by given replacement path. Replacement starting
+///         without a dot gets one prepended. Empty replacement removes the extension. Dotfiles like
+///         ".profile" have no extension, so replacement is appended to them
 template <CompPath PATH, CompPath REPLACEMENT>
 constexpr CompPath REPLACE_EXTENSION = detail::REPLACE_EXTENSION<CompPath, PATH, REPLACEMENT>;
 
+/// @brief: Decompose path into a tuple of it's components as integral constants. Absolute paths
+///         start with a root-path token. Empty components produced by trailing separators are
+///         preserved
 template <CompPath PATH>
 constexpr std::tuple TOKENS = detail::TOKENS<CompPath, PATH>;
 
+/// @brief: Get path in normal form: dot components are removed, dot-dot components resolve
+///         preceding components, redundant separators are collapsed and leading root path is
+///         preserved. Root path eats all dot-dots, e.g. "C:\.." resolves to "C:\". Empty path and
+///         path consisting only of dot-dots resolve to "." and leading ".." respectively
 template <CompPath PATH>
 constexpr CompPath LEXICALLY_NORMAL = detail::LEXICALLY_NORMAL<CompPath, PATH>;
 
+/// @brief: Get path relative to given base path. Both paths are normalized first. Returns empty
+///         path if paths have different root paths, e.g. "C:" and "D:" drives. Empty base returns
+///         the path itself. Equal paths yield "."
 template <CompPath PATH, CompPath BASE>
 constexpr CompPath LEXICALLY_RELATIVE = detail::LEXICALLY_RELATIVE<CompPath, PATH, BASE>;
 
+/// @brief: Get path relative to given base path if possible, otherwise return the path itself.
+///         Unlike LEXICALLY_RELATIVE it never returns an empty path when paths have different roots
 template <CompPath PATH, CompPath BASE>
 constexpr CompPath LEXICALLY_PROXIMATE = detail::LEXICALLY_PROXIMATE<CompPath, PATH, BASE>;
 

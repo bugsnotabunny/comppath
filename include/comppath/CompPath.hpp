@@ -87,10 +87,9 @@ constexpr bool is_valid_utf8 // NOLINT(readability-function-cognitive-complexity
 
     // ----- Maximum valid Unicode codepoint -----
     if (codepoint > 0x10FFFF) {
-      return false; // Beyond the Unicode limit
+      return false;
     }
 
-    // Advance to the next sequence
     i += (trailing + 1);
   }
 
@@ -727,7 +726,7 @@ consteval auto path_substr() noexcept {
 
 template <template <size_t> typename COMP_PATH, auto PATH>
 consteval auto shrink_impl() noexcept {
-  using value_type = typename decltype(PATH)::value_type;
+  using value_type = decltype(PATH)::value_type;
   constexpr auto SIZE = PATH.size() + 1;
   value_type data[SIZE]{};
   std::ranges::copy(std::basic_string_view<value_type>{PATH}, data);
@@ -802,7 +801,7 @@ constexpr COMP_PATH ROOT_PATH = SHRINK<COMP_PATH, root_path_impl<COMP_PATH, PATH
 
 template <template <size_t> typename COMP_PATH, auto PATH>
 consteval auto remove_trailing_seps_impl() noexcept {
-  using value_type = typename decltype(PATH)::value_type;
+  using value_type = decltype(PATH)::value_type;
 
   if constexpr (PATH.empty() || PATH.is_root_path()) {
     return PATH;
@@ -836,7 +835,7 @@ constexpr COMP_PATH RELATIVE_PATH = SHRINK<COMP_PATH, relative_path_impl<COMP_PA
 
 template <template <size_t> typename COMP_PATH, auto PATH>
 consteval auto parent_path_impl() noexcept {
-  using value_type = typename decltype(PATH)::value_type;
+  using value_type = decltype(PATH)::value_type;
 
   if constexpr (PATH.empty() || PATH.is_root_path()) {
     return PATH;
@@ -866,7 +865,7 @@ constexpr COMP_PATH PARENT_PATH = SHRINK<COMP_PATH, parent_path_impl<COMP_PATH, 
 
 template <template <size_t> typename COMP_PATH, auto PATH>
 consteval auto filename_impl() noexcept {
-  using value_type = typename decltype(PATH)::value_type;
+  using value_type = decltype(PATH)::value_type;
 
   if constexpr (PATH.empty()) {
     return PATH;
@@ -888,7 +887,7 @@ constexpr COMP_PATH FILENAME = SHRINK<COMP_PATH, filename_impl<COMP_PATH, PATH>(
 
 template <template <size_t> typename COMP_PATH, auto PATH>
 consteval auto stem_impl() noexcept {
-  using value_type = typename decltype(PATH)::value_type;
+  using value_type = decltype(PATH)::value_type;
 
   constexpr auto const &FNAME = FILENAME<COMP_PATH, PATH>;
   if constexpr (FNAME.empty()) {

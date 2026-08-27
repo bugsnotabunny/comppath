@@ -1,24 +1,12 @@
 #include "comppath/CompPath.hpp"
 
-#include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
-
-namespace {
-
-template <typename... CONSTANTS, typename... TO_COMPARE>
-consteval bool constants_eq(std::tuple<CONSTANTS...>,
-                            std::tuple<TO_COMPARE...> to_compare) noexcept {
-  return std::tuple{CONSTANTS::value...} == to_compare;
-}
-
-} // namespace
 
 TEST_CASE("to_utf8 from u16string_view", "[utf][to_utf8][u16]") {
   SECTION("Empty string") {
     std::u16string_view empty;
     auto result = comppath::detail::to_utf8(empty);
     CHECK(result.empty());
-    CHECK(result == u8"");
   }
 
   SECTION("ASCII only") {
@@ -69,7 +57,6 @@ TEST_CASE("to_utf8 from u32string_view", "[utf][to_utf8][u32]") {
     std::u32string_view empty;
     auto result = comppath::detail::to_utf8(empty);
     CHECK(result.empty());
-    CHECK(result == u8"");
   }
 
   SECTION("ASCII only") {
@@ -113,7 +100,6 @@ TEST_CASE("to_utf16 from u8string_view", "[utf][to_utf16]") {
     std::u8string_view empty;
     auto result = comppath::detail::to_utf16(empty);
     CHECK(result.empty());
-    CHECK(result == u"");
   }
 
   SECTION("ASCII only") {

@@ -1,6 +1,5 @@
 #include "comppath/CompPath.hpp"
 
-#include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 namespace {
@@ -67,7 +66,7 @@ TEST_CASE("posix CompPath") {
   STATIC_CHECK(USR == comppath::posix::CompPath{"/usr"});
   STATIC_CHECK((USR <=> "/usr") == 0);
   STATIC_CHECK(USR < "/usr/bin");
-  STATIC_CHECK(EMPTY == "");
+  STATIC_CHECK(EMPTY.empty());
 
   // operator/  (inserts separator)
   STATIC_CHECK(REL_USR / "bin" == "usr/bin");
@@ -82,46 +81,46 @@ TEST_CASE("posix CompPath") {
   STATIC_CHECK(REL_USR + "/bin" == "usr/bin");
   STATIC_CHECK(EMPTY + "foo" == "foo");
 
-  STATIC_CHECK(ROOT_NAME<EMPTY> == "");
-  STATIC_CHECK(ROOT_NAME<ROOT_SLASH> == "");
-  STATIC_CHECK(ROOT_NAME<USR> == "");
+  STATIC_CHECK(ROOT_NAME<EMPTY>.empty());
+  STATIC_CHECK(ROOT_NAME<ROOT_SLASH>.empty());
+  STATIC_CHECK(ROOT_NAME<USR>.empty());
 
-  STATIC_CHECK(ROOT_DIRECTORY<EMPTY> == "");
+  STATIC_CHECK(ROOT_DIRECTORY<EMPTY>.empty());
   STATIC_CHECK(ROOT_DIRECTORY<ROOT_SLASH> == "/");
   STATIC_CHECK(ROOT_DIRECTORY<USR> == "/");
-  STATIC_CHECK(ROOT_DIRECTORY<REL_USR> == "");
+  STATIC_CHECK(ROOT_DIRECTORY<REL_USR>.empty());
 
-  STATIC_CHECK(ROOT_PATH<EMPTY> == "");
+  STATIC_CHECK(ROOT_PATH<EMPTY>.empty());
   STATIC_CHECK(ROOT_PATH<ROOT_SLASH> == "/");
   STATIC_CHECK(ROOT_PATH<USR> == "/");
-  STATIC_CHECK(ROOT_PATH<REL_USR> == "");
+  STATIC_CHECK(ROOT_PATH<REL_USR>.empty());
 
-  STATIC_CHECK(RELATIVE_PATH<EMPTY> == "");
-  STATIC_CHECK(RELATIVE_PATH<ROOT_SLASH> == "");
+  STATIC_CHECK(RELATIVE_PATH<EMPTY>.empty());
+  STATIC_CHECK(RELATIVE_PATH<ROOT_SLASH>.empty());
   STATIC_CHECK(RELATIVE_PATH<USR> == "usr");
   STATIC_CHECK(RELATIVE_PATH<USR_BIN> == "usr/bin");
   STATIC_CHECK(RELATIVE_PATH<REL_USR> == "usr");
-  STATIC_CHECK(RELATIVE_PATH<DOUBLE_SLASH> == ""); // root only
+  STATIC_CHECK(RELATIVE_PATH<DOUBLE_SLASH>.empty()); // root only
 
-  STATIC_CHECK(PARENT_PATH<EMPTY> == "");
+  STATIC_CHECK(PARENT_PATH<EMPTY>.empty());
   STATIC_CHECK(PARENT_PATH<ROOT_SLASH> == "/");
   STATIC_CHECK(PARENT_PATH<USR> == "/");
   STATIC_CHECK(PARENT_PATH<USR_BIN> == "/usr");
   STATIC_CHECK(PARENT_PATH<USR_BIN_TRAIL> == "/usr/bin"); // removes trailing slash
-  STATIC_CHECK(PARENT_PATH<REL_USR> == "");
+  STATIC_CHECK(PARENT_PATH<REL_USR>.empty());
   STATIC_CHECK(PARENT_PATH<REL_USR_BIN> == "usr");
-  STATIC_CHECK(PARENT_PATH<DOT> == "");
-  STATIC_CHECK(PARENT_PATH<DOTDOT> == "");
+  STATIC_CHECK(PARENT_PATH<DOT>.empty());
+  STATIC_CHECK(PARENT_PATH<DOTDOT>.empty());
   STATIC_CHECK(PARENT_PATH<A_B_DOTDOT> == "a/b");
   STATIC_CHECK(PARENT_PATH<A_B_DOTDOT_C> == "a/b/.."); // does not resolve ".."
   STATIC_CHECK(PARENT_PATH<ABS_DOTDOT_C> == "/a/b/..");
   STATIC_CHECK(PARENT_PATH<DOUBLE_SLASH> == "//"); // root with double slash?
 
-  STATIC_CHECK(FILENAME<EMPTY> == "");
-  STATIC_CHECK(FILENAME<ROOT_SLASH> == "");
+  STATIC_CHECK(FILENAME<EMPTY>.empty());
+  STATIC_CHECK(FILENAME<ROOT_SLASH>.empty());
   STATIC_CHECK(FILENAME<USR> == "usr");
   STATIC_CHECK(FILENAME<USR_BIN> == "bin");
-  STATIC_CHECK(FILENAME<USR_BIN_TRAIL> == ""); // trailing slash => empty filename
+  STATIC_CHECK(FILENAME<USR_BIN_TRAIL>.empty()); // trailing slash => empty filename
   STATIC_CHECK(FILENAME<REL_USR> == "usr");
   STATIC_CHECK(FILENAME<REL_USR_BIN> == "bin");
   STATIC_CHECK(FILENAME<DOT> == ".");
@@ -133,16 +132,16 @@ TEST_CASE("posix CompPath") {
   STATIC_CHECK(FILENAME<A_B_DOTC> == ".c");
   STATIC_CHECK(FILENAME<A_B_DOTDOT_C> == "c");
   STATIC_CHECK(FILENAME<DOUBLE_SEP> == "b"); // last component "b"
-  STATIC_CHECK(FILENAME<TRAIL_REL> == "");   // trailing slash
+  STATIC_CHECK(FILENAME<TRAIL_REL>.empty());   // trailing slash
 
-  STATIC_CHECK(STEM<EMPTY> == "");
-  STATIC_CHECK(EXTENSION<EMPTY> == "");
+  STATIC_CHECK(STEM<EMPTY>.empty());
+  STATIC_CHECK(EXTENSION<EMPTY>.empty());
 
   STATIC_CHECK(STEM<FILE_TXT> == " file");
   STATIC_CHECK(EXTENSION<FILE_TXT> == ".txt ");
 
   STATIC_CHECK(STEM<HIDDEN> == ".hidden"); // leading dot does not count as extension
-  STATIC_CHECK(EXTENSION<HIDDEN> == "");
+  STATIC_CHECK(EXTENSION<HIDDEN>.empty());
 
   STATIC_CHECK(STEM<A_B_C> == "c");
   STATIC_CHECK(EXTENSION<A_B_C> == ".txt");
@@ -152,15 +151,15 @@ TEST_CASE("posix CompPath") {
   STATIC_CHECK(EXTENSION<A_B_C_D> == ".txt");
 
   STATIC_CHECK(STEM<A_B_DOTC> == ".c"); // leading dot → no extension
-  STATIC_CHECK(EXTENSION<A_B_DOTC> == "");
+  STATIC_CHECK(EXTENSION<A_B_DOTC>.empty());
 
   STATIC_CHECK(STEM<DOT> == ".");
-  STATIC_CHECK(EXTENSION<DOT> == "");
+  STATIC_CHECK(EXTENSION<DOT>.empty());
   STATIC_CHECK(STEM<DOTDOT> == "..");
-  STATIC_CHECK(EXTENSION<DOTDOT> == "");
+  STATIC_CHECK(EXTENSION<DOTDOT>.empty());
 
   STATIC_CHECK(STEM<"..file"> == "..file");
-  STATIC_CHECK(EXTENSION<"..file"> == "");
+  STATIC_CHECK(EXTENSION<"..file">.empty());
 
   STATIC_CHECK(STEM<"file."> == "file");
   STATIC_CHECK(EXTENSION<"file."> == ".");
@@ -169,7 +168,7 @@ TEST_CASE("posix CompPath") {
   STATIC_CHECK(EXTENSION<"f."> == ".");
 
   STATIC_CHECK(STEM<".profile"> == ".profile");
-  STATIC_CHECK(EXTENSION<".profile"> == "");
+  STATIC_CHECK(EXTENSION<".profile">.empty());
 
   STATIC_CHECK(STEM<"archive.tar.gz"> == "archive.tar");
   STATIC_CHECK(EXTENSION<"archive.tar.gz"> == ".gz");
@@ -233,7 +232,7 @@ TEST_CASE("posix CompPath") {
   STATIC_CHECK(ROOT_DIRECTORY<DOUBLE_SLASH_USR> == "/");
   STATIC_CHECK(ROOT_PATH<DOUBLE_SLASH_USR> == "//");
 
-  STATIC_CHECK(RELATIVE_PATH<DOUBLE_SLASH_ROOT> == "");
+  STATIC_CHECK(RELATIVE_PATH<DOUBLE_SLASH_ROOT>.empty());
   STATIC_CHECK(RELATIVE_PATH<DOUBLE_SLASH_USR> == "usr");
   STATIC_CHECK(RELATIVE_PATH<DOUBLE_SLASH_USR_BIN> == "usr/bin");
 
@@ -263,7 +262,7 @@ TEST_CASE("posix CompPath") {
 
   STATIC_CHECK(FILENAME<A_SLASH_SLASH_B> == "b");
   STATIC_CHECK(FILENAME<SLASH_A_SLASH_SLASH_B> == "b");
-  STATIC_CHECK(FILENAME<A_SLASH_SLASH_B_SLASH> == "");
+  STATIC_CHECK(FILENAME<A_SLASH_SLASH_B_SLASH>.empty());
 
   STATIC_CHECK(PARENT_PATH<A_SLASH_SLASH_B> == "a");
   STATIC_CHECK(PARENT_PATH<SLASH_A_SLASH_SLASH_B> == "/a");
@@ -297,7 +296,7 @@ TEST_CASE("posix CompPath") {
   STATIC_CHECK(LEXICALLY_RELATIVE<"/a/b", "/a/b"> == ".");
   STATIC_CHECK(LEXICALLY_RELATIVE<"/a/b", "/a/c"> == "../b");
   STATIC_CHECK(LEXICALLY_RELATIVE<"/a/b", "/a/b/c"> == "..");
-  STATIC_CHECK(LEXICALLY_RELATIVE<"/a/b", "//c"> == ""); // different root
+  STATIC_CHECK(LEXICALLY_RELATIVE<"/a/b", "//c">.empty()); // different root
   STATIC_CHECK(LEXICALLY_RELATIVE<"/a/b", ""> == "/a/b");
   STATIC_CHECK(LEXICALLY_RELATIVE<"a/b", "a"> == "b");
   STATIC_CHECK(LEXICALLY_RELATIVE<"a/b", "b"> == "../a/b"); // not same prefix
@@ -311,7 +310,7 @@ TEST_CASE("posix CompPath") {
   STATIC_CHECK(comppath::posix::CompPath{U"😷😷/перкеля/bear/💃💃💃"} ==
                u8"😷😷/перкеля/bear/💃💃💃");
 
-  STATIC_CHECK(SHRINK<""> == "");
+  STATIC_CHECK(SHRINK<"">.empty());
   STATIC_CHECK(SHRINK<"foo"> == "foo");
   STATIC_CHECK(SHRINK<"foo/bar"> == "foo/bar");
   STATIC_CHECK(SHRINK<"/foo/bar"> == "/foo/bar");
@@ -333,49 +332,49 @@ TEST_CASE("posix CompPath") {
   STATIC_CHECK(CONCAT<"", "bar"> == "bar");
   STATIC_CHECK(CONCAT<"foo", ""> == "foo");
 
-  STATIC_CHECK(ROOT_NAME<"/foo/bar"> == "");
-  STATIC_CHECK(ROOT_NAME<"foo/bar"> == "");
-  STATIC_CHECK(ROOT_NAME<""> == "");
+  STATIC_CHECK(ROOT_NAME<"/foo/bar">.empty());
+  STATIC_CHECK(ROOT_NAME<"foo/bar">.empty());
+  STATIC_CHECK(ROOT_NAME<"">.empty());
 
   STATIC_CHECK(ROOT_DIRECTORY<"/foo/bar"> == "/");
   STATIC_CHECK(ROOT_DIRECTORY<"//foo/bar"> == "/");
   STATIC_CHECK(ROOT_DIRECTORY<"/foo"> == "/");
   STATIC_CHECK(ROOT_DIRECTORY<"//foo"> == "/");
-  STATIC_CHECK(ROOT_DIRECTORY<"foo/bar"> == ""); // relative
-  STATIC_CHECK(ROOT_DIRECTORY<""> == "");
+  STATIC_CHECK(ROOT_DIRECTORY<"foo/bar">.empty()); // relative
+  STATIC_CHECK(ROOT_DIRECTORY<"">.empty());
 
   STATIC_CHECK(ROOT_PATH<"/foo/bar"> == "/");
   STATIC_CHECK(ROOT_PATH<"//foo/bar"> == "//");
-  STATIC_CHECK(ROOT_PATH<"foo/bar"> == "");
-  STATIC_CHECK(ROOT_PATH<""> == "");
+  STATIC_CHECK(ROOT_PATH<"foo/bar">.empty());
+  STATIC_CHECK(ROOT_PATH<"">.empty());
 
   STATIC_CHECK(REMOVE_TRAILING_SEPS<"foo/"> == "foo");
   STATIC_CHECK(REMOVE_TRAILING_SEPS<"foo//"> == "foo");
   STATIC_CHECK(REMOVE_TRAILING_SEPS<"/foo/"> == "/foo");
   STATIC_CHECK(REMOVE_TRAILING_SEPS<"/"> == "/"); // root unchanged
-  STATIC_CHECK(REMOVE_TRAILING_SEPS<""> == "");
+  STATIC_CHECK(REMOVE_TRAILING_SEPS<"">.empty());
 
   STATIC_CHECK(RELATIVE_PATH<"/foo/bar"> == "foo/bar");
   STATIC_CHECK(RELATIVE_PATH<"//foo/bar"> == "foo/bar"); // root stripped
   STATIC_CHECK(RELATIVE_PATH<"foo/bar"> == "foo/bar");   // already relative
-  STATIC_CHECK(RELATIVE_PATH<"/"> == "");                // root only -> empty relative
-  STATIC_CHECK(RELATIVE_PATH<""> == "");
+  STATIC_CHECK(RELATIVE_PATH<"/">.empty());                // root only -> empty relative
+  STATIC_CHECK(RELATIVE_PATH<"">.empty());
 
   STATIC_CHECK(PARENT_PATH<"/foo/bar"> == "/foo");
   STATIC_CHECK(PARENT_PATH<"/foo/bar/"> == "/foo/bar"); // trailing sep removed
   STATIC_CHECK(PARENT_PATH<"foo/bar"> == "foo");
-  STATIC_CHECK(PARENT_PATH<"foo"> == "");     // no parent
+  STATIC_CHECK(PARENT_PATH<"foo">.empty());     // no parent
   STATIC_CHECK(PARENT_PATH<"foo/"> == "foo"); // trailing sep -> parent is "foo"
   STATIC_CHECK(PARENT_PATH<"/foo"> == "/");
   STATIC_CHECK(PARENT_PATH<"/"> == "/"); // root -> itself
-  STATIC_CHECK(PARENT_PATH<""> == "");
+  STATIC_CHECK(PARENT_PATH<"">.empty());
 
   STATIC_CHECK(FILENAME<"/foo/bar"> == "bar");
   STATIC_CHECK(FILENAME<"foo/bar"> == "bar");
   STATIC_CHECK(FILENAME<"foo"> == "foo");
-  STATIC_CHECK(FILENAME<"foo/"> == ""); // trailing sep -> no filename
-  STATIC_CHECK(FILENAME<"/"> == "");    // root -> no filename
-  STATIC_CHECK(FILENAME<""> == "");
+  STATIC_CHECK(FILENAME<"foo/">.empty()); // trailing sep -> no filename
+  STATIC_CHECK(FILENAME<"/">.empty());    // root -> no filename
+  STATIC_CHECK(FILENAME<"">.empty());
 
   STATIC_CHECK(STEM<"foo.txt"> == "foo");
   STATIC_CHECK(STEM<"foo"> == "foo");
@@ -384,11 +383,11 @@ TEST_CASE("posix CompPath") {
   STATIC_CHECK(STEM<"/foo/bar.txt"> == "bar");
   STATIC_CHECK(STEM<"foo."> == "foo");
   STATIC_CHECK(STEM<"foo.."> == "foo.");
-  STATIC_CHECK(STEM<""> == "");
+  STATIC_CHECK(STEM<"">.empty());
 
   STATIC_CHECK(EXTENSION<"foo.txt"> == ".txt");
-  STATIC_CHECK(EXTENSION<"foo"> == "");
-  STATIC_CHECK(EXTENSION<".profile"> == "");
+  STATIC_CHECK(EXTENSION<"foo">.empty());
+  STATIC_CHECK(EXTENSION<".profile">.empty());
   STATIC_CHECK(EXTENSION<"foo.tar.gz"> == ".gz");
   STATIC_CHECK(EXTENSION<"foo."> == ".");
   STATIC_CHECK(EXTENSION<"foo.."> == ".");
@@ -399,10 +398,10 @@ TEST_CASE("posix CompPath") {
 
   STATIC_CHECK(REMOVE_FILENAME<"/foo/bar"> == "/foo");
   STATIC_CHECK(REMOVE_FILENAME<"foo/bar"> == "foo");
-  STATIC_CHECK(REMOVE_FILENAME<"foo"> == "");
+  STATIC_CHECK(REMOVE_FILENAME<"foo">.empty());
   STATIC_CHECK(REMOVE_FILENAME<"foo/"> == "foo");
   STATIC_CHECK(REMOVE_FILENAME<"/"> == "/");
-  STATIC_CHECK(REMOVE_FILENAME<""> == "");
+  STATIC_CHECK(REMOVE_FILENAME<"">.empty());
 
   STATIC_CHECK(REMOVE_EXTENSION<"foo.txt"> == "foo");
   STATIC_CHECK(REMOVE_EXTENSION<"foo.tar.gz"> == "foo.tar");

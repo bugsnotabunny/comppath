@@ -1,12 +1,11 @@
 #include "comppath/CompPath.hpp"
 
-#include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 TEST_CASE("windows CompPath") {
   using namespace comppath::win;
 
-  STATIC_CHECK(SHRINK<""> == "");
+  STATIC_CHECK(SHRINK<"">.empty());
   STATIC_CHECK(SHRINK<"foo"> == "foo");
   STATIC_CHECK(SHRINK<"foo/bar"> == "foo/bar");
   STATIC_CHECK(SHRINK<"C:\\foo\\bar"> == "C:\\foo\\bar");
@@ -38,23 +37,23 @@ TEST_CASE("windows CompPath") {
   STATIC_CHECK(ROOT_NAME<"C:\\foo\\bar"> == "C:");
   STATIC_CHECK(ROOT_NAME<"C:/foo/bar"> == "C:");
   STATIC_CHECK(ROOT_NAME<"C:"> == "C:");
-  STATIC_CHECK(ROOT_NAME<"\\foo"> == "");
-  STATIC_CHECK(ROOT_NAME<"/foo"> == "");
+  STATIC_CHECK(ROOT_NAME<"\\foo">.empty());
+  STATIC_CHECK(ROOT_NAME<"/foo">.empty());
   STATIC_CHECK(ROOT_NAME<"//server/share/foo"> == "//server/share");
   STATIC_CHECK(ROOT_NAME<R"(\\server\share\foo)"> == R"(\\server\share)");
   STATIC_CHECK(ROOT_NAME<"//?\\UNC\\server/share/foo"> == "//?\\UNC\\server/share");
   STATIC_CHECK(ROOT_NAME<"\\\\?\\uNc/server/share/foo"> == "\\\\?\\uNc/server/share");
   STATIC_CHECK(ROOT_NAME<R"(\\server\share\foo)"> == R"(\\server\share)");
-  STATIC_CHECK(ROOT_NAME<"foo/bar"> == "");
+  STATIC_CHECK(ROOT_NAME<"foo/bar">.empty());
 
   STATIC_CHECK(ROOT_DIRECTORY<"C:\\foo\\bar"> == "\\");
   STATIC_CHECK(ROOT_DIRECTORY<"C:/foo/bar"> == "/"); // root directory is '/'
   STATIC_CHECK(ROOT_DIRECTORY<"\\foo"> == "\\");
   STATIC_CHECK(ROOT_DIRECTORY<"/foo"> == "/");
-  STATIC_CHECK(ROOT_DIRECTORY<"C:"> == ""); // no root directory
+  STATIC_CHECK(ROOT_DIRECTORY<"C:">.empty()); // no root directory
   STATIC_CHECK(ROOT_DIRECTORY<"C:\\"> == "\\");
   STATIC_CHECK(ROOT_DIRECTORY<"//server/share/foo"> == "/"); // root directory is '/'
-  STATIC_CHECK(ROOT_DIRECTORY<"foo/bar"> == "");
+  STATIC_CHECK(ROOT_DIRECTORY<"foo/bar">.empty());
 
   STATIC_CHECK(ROOT_PATH<"C:\\foo\\bar"> == "C:\\");
   STATIC_CHECK(ROOT_PATH<"C:/foo/bar"> == "C:/");
@@ -63,7 +62,7 @@ TEST_CASE("windows CompPath") {
 
   STATIC_CHECK(ROOT_PATH<"C:"> == "C:"); // no root directory -> root_path = root_name
   STATIC_CHECK(ROOT_PATH<"//server/share/foo"> == "//server/share/");
-  STATIC_CHECK(ROOT_PATH<"foo/bar"> == "");
+  STATIC_CHECK(ROOT_PATH<"foo/bar">.empty());
 
   STATIC_CHECK(REMOVE_TRAILING_SEPS<"foo\\"> == "foo");
   STATIC_CHECK(REMOVE_TRAILING_SEPS<"foo/"> == "foo");
@@ -72,15 +71,15 @@ TEST_CASE("windows CompPath") {
   STATIC_CHECK(REMOVE_TRAILING_SEPS<"C:\\foo\\"> == "C:\\foo");
   STATIC_CHECK(REMOVE_TRAILING_SEPS<"C:\\"> == "C:\\"); // root path unchanged
   STATIC_CHECK(REMOVE_TRAILING_SEPS<"\\"> == "\\");
-  STATIC_CHECK(REMOVE_TRAILING_SEPS<""> == "");
+  STATIC_CHECK(REMOVE_TRAILING_SEPS<"">.empty());
 
   STATIC_CHECK(RELATIVE_PATH<"C:\\foo\\bar"> == "foo\\bar");
   STATIC_CHECK(RELATIVE_PATH<"C:/foo/bar"> == "foo/bar");
   STATIC_CHECK(RELATIVE_PATH<"\\foo\\bar"> == "foo\\bar"); // absolute without root-name
   STATIC_CHECK(RELATIVE_PATH<"/foo/bar"> == "foo/bar");
   STATIC_CHECK(RELATIVE_PATH<"foo/bar"> == "foo/bar"); // already relative
-  STATIC_CHECK(RELATIVE_PATH<"C:"> == "");             // no relative part
-  STATIC_CHECK(RELATIVE_PATH<"C:\\"> == "");
+  STATIC_CHECK(RELATIVE_PATH<"C:">.empty());             // no relative part
+  STATIC_CHECK(RELATIVE_PATH<"C:\\">.empty());
 
   STATIC_CHECK(PARENT_PATH<"C:\\foo\\bar"> == "C:\\foo");
   STATIC_CHECK(PARENT_PATH<"C:/foo/bar"> == "C:/foo");
@@ -88,7 +87,7 @@ TEST_CASE("windows CompPath") {
   STATIC_CHECK(PARENT_PATH<"/foo/bar"> == "/foo");
   STATIC_CHECK(PARENT_PATH<"foo\\bar"> == "foo");
   STATIC_CHECK(PARENT_PATH<"foo/bar"> == "foo");
-  STATIC_CHECK(PARENT_PATH<"foo"> == "");      // no parent
+  STATIC_CHECK(PARENT_PATH<"foo">.empty());      // no parent
   STATIC_CHECK(PARENT_PATH<"foo\\"> == "foo"); // trailing sep removed before parent
   STATIC_CHECK(PARENT_PATH<"C:\\"> == "C:\\"); // root path -> itself
   STATIC_CHECK(PARENT_PATH<"\\"> == "\\");
@@ -102,11 +101,11 @@ TEST_CASE("windows CompPath") {
   STATIC_CHECK(FILENAME<"foo\\bar"> == "bar");
   STATIC_CHECK(FILENAME<"foo/bar"> == "bar");
   STATIC_CHECK(FILENAME<"foo"> == "foo");
-  STATIC_CHECK(FILENAME<"foo\\"> == ""); // trailing sep -> no filename
-  STATIC_CHECK(FILENAME<"foo/"> == "");
-  STATIC_CHECK(FILENAME<"C:\\"> == ""); // root directory
-  STATIC_CHECK(FILENAME<"C:"> == "");   // just root-name
-  STATIC_CHECK(FILENAME<""> == "");
+  STATIC_CHECK(FILENAME<"foo\\">.empty()); // trailing sep -> no filename
+  STATIC_CHECK(FILENAME<"foo/">.empty());
+  STATIC_CHECK(FILENAME<"C:\\">.empty()); // root directory
+  STATIC_CHECK(FILENAME<"C:">.empty());   // just root-name
+  STATIC_CHECK(FILENAME<"">.empty());
 
   STATIC_CHECK(STEM<"foo.txt"> == "foo");
   STATIC_CHECK(STEM<"foo"> == "foo");
@@ -116,11 +115,11 @@ TEST_CASE("windows CompPath") {
   STATIC_CHECK(STEM<"foo/bar."> == "bar"); // trailing dot -> extension empty, stem is "bar"
   STATIC_CHECK(STEM<"foo.."> == "foo.");
   STATIC_CHECK(STEM<".foo"> == ".foo");
-  STATIC_CHECK(STEM<""> == "");
+  STATIC_CHECK(STEM<"">.empty());
 
   STATIC_CHECK(EXTENSION<"foo.txt"> == ".txt");
-  STATIC_CHECK(EXTENSION<"foo"> == "");
-  STATIC_CHECK(EXTENSION<".profile"> == "");
+  STATIC_CHECK(EXTENSION<"foo">.empty());
+  STATIC_CHECK(EXTENSION<".profile">.empty());
   STATIC_CHECK(EXTENSION<"foo.tar.gz"> == ".gz");
   STATIC_CHECK(EXTENSION<"foo."> == ".");
   STATIC_CHECK(EXTENSION<"foo.."> == ".");
@@ -132,7 +131,7 @@ TEST_CASE("windows CompPath") {
 
   STATIC_CHECK(REMOVE_FILENAME<"C:\\foo\\bar"> == "C:\\foo");
   STATIC_CHECK(REMOVE_FILENAME<"foo/bar"> == "foo");
-  STATIC_CHECK(REMOVE_FILENAME<"foo"> == "");
+  STATIC_CHECK(REMOVE_FILENAME<"foo">.empty());
   STATIC_CHECK(REMOVE_FILENAME<"foo\\"> == "foo");
   STATIC_CHECK(REMOVE_FILENAME<"C:"> == "C:");
   STATIC_CHECK(REMOVE_FILENAME<"foo/bar/"> == "foo/bar");
@@ -192,13 +191,13 @@ TEST_CASE("windows CompPath") {
   STATIC_CHECK(std::tuple_size_v<decltype(TOKENS6)> == 3);
   STATIC_CHECK(std::get<0>(TOKENS6).value == "a");
   STATIC_CHECK(std::get<1>(TOKENS6).value == "b");
-  STATIC_CHECK(std::get<2>(TOKENS6).value == "");
+  STATIC_CHECK(std::get<2>(TOKENS6).value.empty());
 
   constexpr auto TOKENS7 = TOKENS<"a\\/b\\">;
   STATIC_CHECK(std::tuple_size_v<decltype(TOKENS7)> == 3);
   STATIC_CHECK(std::get<0>(TOKENS7).value == "a");
   STATIC_CHECK(std::get<1>(TOKENS7).value == "b");
-  STATIC_CHECK(std::get<2>(TOKENS7).value == "");
+  STATIC_CHECK(std::get<2>(TOKENS7).value.empty());
 
   STATIC_CHECK(LEXICALLY_NORMAL<"foo/./bar"> == "foo\\bar");
   STATIC_CHECK(LEXICALLY_NORMAL<"foo/../bar"> == "bar");
@@ -226,7 +225,7 @@ TEST_CASE("windows CompPath") {
   STATIC_CHECK(LEXICALLY_RELATIVE<"foo/bar", "foo/bar"> == ".");
   STATIC_CHECK(LEXICALLY_RELATIVE<"foo/bar", "foo/bar/."> == ".");
   STATIC_CHECK(LEXICALLY_RELATIVE<"C:\\foo\\bar", "C:\\foo"> == "bar");
-  STATIC_CHECK(LEXICALLY_RELATIVE<"C:\\foo\\bar", "D:\\foo"> == "");
+  STATIC_CHECK(LEXICALLY_RELATIVE<"C:\\foo\\bar", "D:\\foo">.empty());
   STATIC_CHECK(LEXICALLY_RELATIVE<"\\foo\\bar", "\\foo"> == "bar");
   STATIC_CHECK(LEXICALLY_RELATIVE<"\\foo\\bar", "\\baz"> == "..\\foo\\bar");
   STATIC_CHECK(LEXICALLY_RELATIVE<"foo/bar", ""> == "foo/bar");

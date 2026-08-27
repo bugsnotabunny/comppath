@@ -16,6 +16,14 @@
 #include <tuple>
 #include <type_traits>
 
+#ifdef _WIN32
+#define COMPPATH_PLATFORM_POSIX 0
+#define COMPPATH_PLATFORM_WINDOWS 1
+#else
+#define COMPPATH_PLATFORM_POSIX 1
+#define COMPPATH_PLATFORM_WINDOWS 0
+#endif
+
 namespace comppath {
 
 namespace detail {
@@ -1532,5 +1540,8 @@ using namespace win;
 #endif
 
 } // namespace comppath
+
+#undef COMPPATH_PLATFORM_POSIX
+#undef COMPPATH_PLATFORM_WINDOWS
 
 #endif

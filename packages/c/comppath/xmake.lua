@@ -8,8 +8,10 @@ package("comppath")
     add_versions("experimental", "master")
     add_versions("v0.1.0", "v0.1.0")
 
+    set_kind("library", {headeronly = true})
+
     on_install(function (package)
-        import("package.tools.xmake").install(package, { tests = false, examples = false, benchmarks = false })
+        import("package.tools.xmake").install(package, { tests = false })
     end)
 
     on_test(function (package)

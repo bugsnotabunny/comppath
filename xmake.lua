@@ -22,19 +22,10 @@ else
 end
 
 target("comppath")
-    set_kind("static")
+    set_kind("headeronly")
     add_includedirs("include", { public = true })
     add_headerfiles("include/(**.hpp)")
     set_default(true)
-
-    if is_plat("android", "appletvos", "applexros", "bsd", "cygwin",
-                "haiku", "iphoneos", "linux", "macosx", "msys", "watchos") then
-        add_defines("COMPPATH_PLATFORM_POSIX=1", { public = true })
-        add_defines("COMPPATH_PLATFORM_WINDOWS=0", { public = true })
-    elseif is_plat("windows") then
-        add_defines("COMPPATH_PLATFORM_POSIX=0", { public = true })
-        add_defines("COMPPATH_PLATFORM_WINDOWS=1", { public = true })
-    end
 target_end()
 
 

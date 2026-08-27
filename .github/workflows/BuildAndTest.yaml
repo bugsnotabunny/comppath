@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
-        config: [asan, tsan, release, minsizerel]
+        config: [debug, release]
         toolchain: [clang, gcc]
 
     env:

@@ -1,0 +1,10 @@
+BasedOnStyle: LLVM
+ColumnLimit: 100
+BreakTemplateDeclarations: Yes
+AllowShortFunctionsOnASingleLine: None
+IncludeBlocks: Regroup
+BinPackArguments: No
+BinPackLongBracedList: No
+BinPackParameters: OnePerLine
+PackConstructorInitializers: Never
+QualifierAlignment: Right

@@ -1,0 +1,60 @@
+Checks: >
+    bugprone-*,
+    -bugprone-easily-swappable-parameters,
+    -bugprone-suspicious-stringview-data-usage,
+
+    modernize-*,
+    -modernize-use-trailing-return-type,
+    -modernize-use-integer-sign-comparison,
+    -modernize-use-nodiscard,
+    -modernize-avoid-c-arrays,
+
+    misc-*,
+    -misc-const-correctness,
+    -misc-use-anonymous-namespace,
+    -misc-new-delete-overloads,
+    -misc-non-private-member-variables-in-classes,
+    -misc-multiple-inheritance,
+
+    readability-*,
+    -readability-redundant-member-init,
+    -readability-identifier-length,
+    -readability-uppercase-literal-suffix,
+    -readability-static-accessed-through-instance,
+    -readability-make-member-function-const,
+    -readability-avoid-return-with-void-value,
+    -readability-named-parameter,
+    -readability-magic-numbers,
+    -readability-math-missing-parentheses,
+
+    performance-*,
+    portability-*,
+    concurrency-*,
+    clang-analyzer-*,
+    clang-diagnostic-*,
+
+
+# Turn all the warnings from the checks above into errors.
+WarningsAsErrors: "*"
+
+CheckOptions:
+  - { key: bugprone-exception-escape.CheckNothrowFunctions,        value: false                                                         }
+  - { key: readability-function-cognitive-complexity.IgnoreMacros, value: true                                                          }
+  - { key: misc-include-cleaner.MissingIncludes,                   value: false                                                         }
+  - { key: readability-identifier-naming.ConstantCase,             value: UPPER_CASE                                                    }
+  - { key: readability-identifier-naming.ConstantMemberCase,       value: lower_case                                                    }
+  - { key: readability-identifier-naming.LocalConstantCase,        value: lower_case                                                    }
+  - { key: readability-identifier-naming.NamespaceCase,            value: lower_case                                                    }
+  - { key: readability-identifier-naming.ConstexprVariableCase,    value: UPPER_CASE                                                    }
+  - { key: readability-identifier-naming.ClassCase,                value: CamelCase                                                     }
+  - { key: readability-identifier-naming.StructCase,               value: CamelCase                                                     }
+  - { key: readability-identifier-naming.TemplateParameterCase,    value: UPPER_CASE                                                    }
+  - { key: readability-identifier-naming.FunctionCase,             value: lower_case                                                    }
+  - { key: readability-identifier-naming.VariableCase,             value: lower_case                                                    }
+  - { key: readability-identifier-naming.PrivateMemberPrefix,      value: m_                                                            }
+  - { key: readability-identifier-naming.ProtectedMemberPrefix,    value: m_                                                            }
+  - { key: readability-identifier-naming.MacroDefinitionCase,      value: UPPER_CASE                                                    }
+  - { key: readability-identifier-naming.LocalVariableCase,        value: lower_case                                                    }
+  - { key: readability-identifier-naming.PublicMemberCase,         value: lower_case                                                    }
+  - { key: readability-identifier-naming.PrivateMemberCase,        value: lower_case                                                    }
+  - { key: readability-identifier-naming.ProtectedMemberCase,      value: lower_case                                                    }

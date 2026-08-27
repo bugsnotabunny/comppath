@@ -1,0 +1,45 @@
+name: "Codestyle"
+
+on:
+  push:
+
+jobs:
+  check-codestyle:
+    runs-on: ubuntu-latest
+
+    env:
+      DEVENV_PROFILES: --profile caches --profile codestyle
+
+    defaults:
+      run:
+        shell: devenv ${{ env.DEVENV_PROFILES }} shell -- bash -e {0}
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: cachix/install-nix-action@v31
+      - uses: cachix/cachix-action@v16
+        with:
+          name: devenv
+
+      - name: devenv.sh install
+        run: nix profile add nixpkgs#devenv
+        shell: bash
+
+      - name: devenv.sh evaluation
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: devenv ${{ env.DEVENV_PROFILES }} shell echo success
+
+      - name: clang-format checks
+        run: xmake format -ne
+
+      - name: configure project
+        run: xmake config --toolchain=clang --mode=asan -vy
+
+      - name: generate compile-commands
+        run: xmake project -k compile_commands --lsp=clangd -vy
+
+      - name: clang-tidy checks
+        run: xmake check clang.tidy

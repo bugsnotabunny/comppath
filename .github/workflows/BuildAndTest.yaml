@@ -1,0 +1,44 @@
+name: "BuildAndTest"
+
+on:
+  push:
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        config: [asan, tsan, release, minsizerel]
+        toolchain: [clang, gcc]
+
+    env:
+      SHELL: --profile caches --profile ${{ matrix.toolchain }}
+
+    defaults:
+      run:
+        shell: devenv ${{ env.DEVENV_PROFILES }} shell -- bash -e {0}
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: cachix/install-nix-action@v31
+      - uses: cachix/cachix-action@v16
+        with:
+          name: devenv
+
+      - name: devenv.sh install
+        run: nix profile add nixpkgs#devenv
+        shell: bash
+
+      - name: devenv.sh evaluation
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: devenv ${{ env.DEVENV_PROFILES }} shell echo success
+
+      - run: xmake config --toolchain=${{ matrix.toolchain }} --mode=${{ matrix.config }} --root -vy
+      - run: xmake build -vy
+      - run: xmake test -j1 -vy '*/default'

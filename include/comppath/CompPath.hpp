@@ -1423,7 +1423,7 @@ template <CompPath PATH>
 constexpr CompPath SHRINK = detail::SHRINK<CompPath, PATH>;
 
 /// @brief: Root path. May be given any root path, e.g. "\\", "/", "C:\\" or "//server/share"
-template <CompPath PATH = "/">
+template <CompPath PATH = "\\">
   requires(PATH.is_root_path())
 constexpr CompPath ROOT = SHRINK<PATH>;
 

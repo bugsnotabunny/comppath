@@ -15,7 +15,7 @@ jobs:
         os: [macos-latest, ubuntu-latest]
         config: [release]
         toolchain: [clang]
-        comppath-version: ["experimental"]
+        comppath-version: ["experimental", "v0.1.0"]
     env:
       DEVENV_PROFILES: --profile caches --profile ${{ matrix.toolchain }}
 

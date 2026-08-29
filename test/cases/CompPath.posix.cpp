@@ -132,7 +132,7 @@ TEST_CASE("posix CompPath") {
   STATIC_CHECK(FILENAME<A_B_DOTC> == ".c");
   STATIC_CHECK(FILENAME<A_B_DOTDOT_C> == "c");
   STATIC_CHECK(FILENAME<DOUBLE_SEP> == "b"); // last component "b"
-  STATIC_CHECK(FILENAME<TRAIL_REL>.empty());   // trailing slash
+  STATIC_CHECK(FILENAME<TRAIL_REL>.empty()); // trailing slash
 
   STATIC_CHECK(STEM<EMPTY>.empty());
   STATIC_CHECK(EXTENSION<EMPTY>.empty());
@@ -357,13 +357,13 @@ TEST_CASE("posix CompPath") {
   STATIC_CHECK(RELATIVE_PATH<"/foo/bar"> == "foo/bar");
   STATIC_CHECK(RELATIVE_PATH<"//foo/bar"> == "foo/bar"); // root stripped
   STATIC_CHECK(RELATIVE_PATH<"foo/bar"> == "foo/bar");   // already relative
-  STATIC_CHECK(RELATIVE_PATH<"/">.empty());                // root only -> empty relative
+  STATIC_CHECK(RELATIVE_PATH<"/">.empty());              // root only -> empty relative
   STATIC_CHECK(RELATIVE_PATH<"">.empty());
 
   STATIC_CHECK(PARENT_PATH<"/foo/bar"> == "/foo");
   STATIC_CHECK(PARENT_PATH<"/foo/bar/"> == "/foo/bar"); // trailing sep removed
   STATIC_CHECK(PARENT_PATH<"foo/bar"> == "foo");
-  STATIC_CHECK(PARENT_PATH<"foo">.empty());     // no parent
+  STATIC_CHECK(PARENT_PATH<"foo">.empty());   // no parent
   STATIC_CHECK(PARENT_PATH<"foo/"> == "foo"); // trailing sep -> parent is "foo"
   STATIC_CHECK(PARENT_PATH<"/foo"> == "/");
   STATIC_CHECK(PARENT_PATH<"/"> == "/"); // root -> itself

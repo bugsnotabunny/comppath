@@ -1,0 +1,35 @@
+name: "WinPackageIntegrity"
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  package-integrity:
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [debug, release]
+        toolchain: [mingw]
+        comppath-version: ["experimental"]
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v5
+
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+
+      - name: Install MinGW
+        run: choco install mingw
+
+      - name: Add MinGW to PATH
+        run: echo "C:\tools\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - run: xmake config --project=.github/package_integrity --toolchain=${{ matrix.toolchain }} --mode=${{ matrix.config }} --comppath-version=${{ matrix.comppath-version }} --root -vy
+      - run: xmake run --project=.github/package_integrity test

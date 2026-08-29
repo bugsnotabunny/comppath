@@ -854,7 +854,7 @@ consteval auto shrink_impl() noexcept {
 }
 
 template <template <size_t> typename COMP_PATH, auto PATH>
-constexpr COMP_PATH SHRINK = shrink_impl<COMP_PATH, PATH>();
+constexpr auto SHRINK = shrink_impl<COMP_PATH, PATH>();
 
 template <posix::CompPath PATH>
 consteval auto root_name_impl() noexcept {
@@ -890,7 +890,7 @@ consteval auto root_name_impl() noexcept {
 }
 
 template <template <size_t> typename COMP_PATH, auto PATH>
-constexpr COMP_PATH ROOT_NAME = SHRINK<COMP_PATH, root_name_impl<PATH>()>;
+constexpr auto ROOT_NAME = SHRINK<COMP_PATH, root_name_impl<PATH>()>;
 
 template <template <size_t> typename COMP_PATH, auto PATH>
 consteval auto root_directory_impl() noexcept {
@@ -909,7 +909,7 @@ consteval auto root_directory_impl() noexcept {
 }
 
 template <template <size_t> typename COMP_PATH, auto PATH>
-constexpr COMP_PATH ROOT_DIRECTORY = SHRINK<COMP_PATH, root_directory_impl<COMP_PATH, PATH>()>;
+constexpr auto ROOT_DIRECTORY = SHRINK<COMP_PATH, root_directory_impl<COMP_PATH, PATH>()>;
 
 template <template <size_t> typename COMP_PATH, auto PATH>
 consteval auto root_path_impl() noexcept {
@@ -917,7 +917,7 @@ consteval auto root_path_impl() noexcept {
 }
 
 template <template <size_t> typename COMP_PATH, auto PATH>
-constexpr COMP_PATH ROOT_PATH = SHRINK<COMP_PATH, root_path_impl<COMP_PATH, PATH>()>;
+constexpr auto ROOT_PATH = SHRINK<COMP_PATH, root_path_impl<COMP_PATH, PATH>()>;
 
 template <template <size_t> typename COMP_PATH, auto PATH>
 consteval auto remove_trailing_seps_impl() noexcept {
@@ -942,7 +942,7 @@ consteval auto remove_trailing_seps_impl() noexcept {
 }
 
 template <template <size_t> typename COMP_PATH, auto PATH>
-constexpr COMP_PATH REMOVE_TRAILING_SEPS =
+constexpr auto REMOVE_TRAILING_SEPS =
     SHRINK<COMP_PATH, remove_trailing_seps_impl<COMP_PATH, PATH>()>;
 
 template <template <size_t> typename COMP_PATH, auto PATH>
@@ -951,7 +951,7 @@ consteval auto relative_path_impl() noexcept {
 }
 
 template <template <size_t> typename COMP_PATH, auto PATH>
-constexpr COMP_PATH RELATIVE_PATH = SHRINK<COMP_PATH, relative_path_impl<COMP_PATH, PATH>()>;
+constexpr auto RELATIVE_PATH = SHRINK<COMP_PATH, relative_path_impl<COMP_PATH, PATH>()>;
 
 template <template <size_t> typename COMP_PATH, auto PATH>
 consteval auto parent_path_impl() noexcept {
@@ -981,7 +981,7 @@ consteval auto parent_path_impl() noexcept {
 }
 
 template <template <size_t> typename COMP_PATH, auto PATH>
-constexpr COMP_PATH PARENT_PATH = SHRINK<COMP_PATH, parent_path_impl<COMP_PATH, PATH>()>;
+constexpr auto PARENT_PATH = SHRINK<COMP_PATH, parent_path_impl<COMP_PATH, PATH>()>;
 
 template <template <size_t> typename COMP_PATH, auto PATH>
 consteval auto filename_impl() noexcept {
@@ -1003,7 +1003,7 @@ consteval auto filename_impl() noexcept {
 }
 
 template <template <size_t> typename COMP_PATH, auto PATH>
-constexpr COMP_PATH FILENAME = SHRINK<COMP_PATH, filename_impl<COMP_PATH, PATH>()>;
+constexpr auto FILENAME = SHRINK<COMP_PATH, filename_impl<COMP_PATH, PATH>()>;
 
 template <template <size_t> typename COMP_PATH, auto PATH>
 consteval auto stem_impl() noexcept {
@@ -1030,7 +1030,7 @@ consteval auto stem_impl() noexcept {
 }
 
 template <template <size_t> typename COMP_PATH, auto PATH>
-constexpr COMP_PATH STEM = SHRINK<COMP_PATH, stem_impl<COMP_PATH, PATH>()>;
+constexpr auto STEM = SHRINK<COMP_PATH, stem_impl<COMP_PATH, PATH>()>;
 
 template <template <size_t> typename COMP_PATH, auto PATH>
 consteval auto extension_impl() noexcept {
@@ -1040,7 +1040,7 @@ consteval auto extension_impl() noexcept {
 }
 
 template <template <size_t> typename COMP_PATH, auto PATH>
-constexpr COMP_PATH EXTENSION = SHRINK<COMP_PATH, extension_impl<COMP_PATH, PATH>()>;
+constexpr auto EXTENSION = SHRINK<COMP_PATH, extension_impl<COMP_PATH, PATH>()>;
 
 template <template <size_t> typename COMP_PATH, auto PATH>
 consteval auto remove_filename_impl() noexcept {
@@ -1051,7 +1051,7 @@ consteval auto remove_filename_impl() noexcept {
 }
 
 template <template <size_t> typename COMP_PATH, auto PATH>
-constexpr COMP_PATH REMOVE_FILENAME = SHRINK<COMP_PATH, remove_filename_impl<COMP_PATH, PATH>()>;
+constexpr auto REMOVE_FILENAME = SHRINK<COMP_PATH, remove_filename_impl<COMP_PATH, PATH>()>;
 
 template <template <size_t> typename COMP_PATH, auto PATH>
 consteval auto remove_extension_impl() noexcept {
@@ -1059,7 +1059,7 @@ consteval auto remove_extension_impl() noexcept {
 }
 
 template <template <size_t> typename COMP_PATH, auto PATH>
-constexpr COMP_PATH REMOVE_EXTENSION = SHRINK<COMP_PATH, remove_extension_impl<COMP_PATH, PATH>()>;
+constexpr auto REMOVE_EXTENSION = SHRINK<COMP_PATH, remove_extension_impl<COMP_PATH, PATH>()>;
 
 template <template <size_t> typename COMP_PATH, auto PATH, auto REPLACEMENT>
 consteval auto replace_filename_impl() noexcept {
@@ -1067,7 +1067,7 @@ consteval auto replace_filename_impl() noexcept {
 }
 
 template <template <size_t> typename COMP_PATH, auto PATH, auto REPLACEMENT>
-constexpr COMP_PATH REPLACE_FILENAME =
+constexpr auto REPLACE_FILENAME =
     SHRINK<COMP_PATH, replace_filename_impl<COMP_PATH, PATH, REPLACEMENT>()>;
 
 template <template <size_t> typename COMP_PATH, auto PATH, auto REPLACEMENT>
@@ -1080,7 +1080,7 @@ consteval auto replace_extension_impl() noexcept {
 }
 
 template <template <size_t> typename COMP_PATH, auto PATH, auto REPLACEMENT>
-constexpr COMP_PATH REPLACE_EXTENSION =
+constexpr auto REPLACE_EXTENSION =
     SHRINK<COMP_PATH, replace_extension_impl<COMP_PATH, PATH, REPLACEMENT>()>;
 
 template <auto VALUE>
@@ -1138,7 +1138,7 @@ consteval auto tokens_impl() noexcept {
 template <template <size_t> typename COMP_PATH, auto PATH>
 constexpr std::tuple TOKENS = tokens_impl<COMP_PATH, PATH>();
 
-template <template <size_t> typename COMP_PATH, COMP_PATH ACCUMULATOR>
+template <template <size_t> typename COMP_PATH, auto ACCUMULATOR>
 consteval auto lexically_normal_impl_impl() noexcept {
   if constexpr (ACCUMULATOR.empty()) {
     return COMP_PATH{"."};
@@ -1177,7 +1177,7 @@ consteval auto lexically_normal_impl() noexcept {
 }
 
 template <template <size_t> typename COMP_PATH, auto PATH>
-constexpr COMP_PATH LEXICALLY_NORMAL = SHRINK<COMP_PATH, lexically_normal_impl<COMP_PATH, PATH>()>;
+constexpr auto LEXICALLY_NORMAL = SHRINK<COMP_PATH, lexically_normal_impl<COMP_PATH, PATH>()>;
 
 template <typename NORMALIZED_PATH_TOKENS_TYPE, typename NORMALIZED_BASE_TOKENS_TYPE, size_t I = 0>
 consteval auto lexically_relative_impl_get_mismatch_idx() noexcept {
@@ -1204,7 +1204,7 @@ consteval auto lexically_relative_impl_append_remaining_dirs() noexcept {
   if constexpr (FROM == std::tuple_size_v<TOKENS>) {
     return ACCUMULATOR;
   } else {
-    constexpr COMP_PATH TO_APPEND = std::tuple_element_t<FROM, TOKENS>::value;
+    constexpr auto TO_APPEND = std::tuple_element_t<FROM, TOKENS>::value;
     return lexically_relative_impl_append_remaining_dirs<COMP_PATH,
                                                          TOKENS,
                                                          FROM + 1,
@@ -1226,9 +1226,9 @@ consteval auto lexically_relative_impl() noexcept {
   if constexpr (BASE.empty()) {
     return PATH;
   } else {
-    constexpr COMP_PATH NORMALIZED_PATH =
+    constexpr auto NORMALIZED_PATH =
         shrink_impl<COMP_PATH, lexically_normal_impl<COMP_PATH, PATH>()>();
-    constexpr COMP_PATH NORMALIZED_BASE =
+    constexpr auto NORMALIZED_BASE =
         shrink_impl<COMP_PATH, lexically_normal_impl<COMP_PATH, BASE>()>();
 
     if constexpr (root_path_impl<COMP_PATH, NORMALIZED_BASE>() !=
@@ -1267,10 +1267,10 @@ consteval auto lexically_relative_impl() noexcept {
 }
 
 template <template <size_t> typename COMP_PATH, auto PATH, auto BASE>
-constexpr COMP_PATH LEXICALLY_RELATIVE =
+constexpr auto LEXICALLY_RELATIVE =
     SHRINK<COMP_PATH, lexically_relative_impl<COMP_PATH, PATH, BASE>()>;
 
-template <template <size_t> typename COMP_PATH, auto PATH, COMP_PATH BASE>
+template <template <size_t> typename COMP_PATH, auto PATH, auto BASE>
 consteval auto lexically_proximate_impl() noexcept {
   constexpr auto RELATIVE = lexically_relative_impl<COMP_PATH, PATH, BASE>();
   if constexpr (RELATIVE.empty()) {
@@ -1281,7 +1281,7 @@ consteval auto lexically_proximate_impl() noexcept {
 }
 
 template <template <size_t> typename COMP_PATH, auto PATH, auto BASE>
-constexpr COMP_PATH LEXICALLY_PROXIMATE =
+constexpr auto LEXICALLY_PROXIMATE =
     SHRINK<COMP_PATH, lexically_proximate_impl<COMP_PATH, PATH, BASE>()>;
 
 template <win::CompPath PATH>

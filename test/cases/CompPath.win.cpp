@@ -78,7 +78,7 @@ TEST_CASE("windows CompPath") {
   STATIC_CHECK(RELATIVE_PATH<"\\foo\\bar"> == "foo\\bar"); // absolute without root-name
   STATIC_CHECK(RELATIVE_PATH<"/foo/bar"> == "foo/bar");
   STATIC_CHECK(RELATIVE_PATH<"foo/bar"> == "foo/bar"); // already relative
-  STATIC_CHECK(RELATIVE_PATH<"C:">.empty());             // no relative part
+  STATIC_CHECK(RELATIVE_PATH<"C:">.empty());           // no relative part
   STATIC_CHECK(RELATIVE_PATH<"C:\\">.empty());
 
   STATIC_CHECK(PARENT_PATH<"C:\\foo\\bar"> == "C:\\foo");
@@ -87,7 +87,7 @@ TEST_CASE("windows CompPath") {
   STATIC_CHECK(PARENT_PATH<"/foo/bar"> == "/foo");
   STATIC_CHECK(PARENT_PATH<"foo\\bar"> == "foo");
   STATIC_CHECK(PARENT_PATH<"foo/bar"> == "foo");
-  STATIC_CHECK(PARENT_PATH<"foo">.empty());      // no parent
+  STATIC_CHECK(PARENT_PATH<"foo">.empty());    // no parent
   STATIC_CHECK(PARENT_PATH<"foo\\"> == "foo"); // trailing sep removed before parent
   STATIC_CHECK(PARENT_PATH<"C:\\"> == "C:\\"); // root path -> itself
   STATIC_CHECK(PARENT_PATH<"\\"> == "\\");
